@@ -1,4 +1,0 @@
-include LICENSE
-include lyrico/lyrico_sources/*.py
-include lyrico/*.ini
-include requirements.txt
