@@ -1,6 +1,7 @@
 import logging
 import random
 import sys
+from time import sleep
 from typing import List, Optional
 
 import requests
@@ -100,6 +101,8 @@ def get_lyrics(artist: str, title: str) -> str:
         del lyrics_sources[0]
         try:
             log.info(f'Trying source {source.get_name()}')
+            log.info('Wait 10 seconds to avoid spamming')
+            sleep(10)       # TODO: Avoid spamming to not get detected
             url, headers = source.prepare_request(title, artist)
             log.info(f'ULR: {url}\n\t{headers}')
             result = requests.get(url, headers=headers)
