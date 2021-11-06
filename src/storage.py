@@ -25,6 +25,8 @@ class Storage:
             return str(f.read())
 
     def store(self, source: str, artist: str, title: str, text: str):
+        if not text:
+            raise Exception('Text must not be none')
         dir_path = self.__make_dir_path(artist, title)
         target = os.path.join(dir_path, source)
         os.makedirs(dir_path, exist_ok=True)
