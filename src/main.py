@@ -50,7 +50,7 @@ def embedd_lyrics_in_song(song_data: SongData, lyrics: str):
             # ASF Format uses ASFUnicodeAttribute objects instead of Python's Unicode
             tag[lyrics_key] = ASFUnicodeAttribute(lyrics)
 
-        tag.load()
+        tag.save()
     except Exception as e:
         log.error("Failed to save lyrics to file: " + str(e), exc_info=True)
 
