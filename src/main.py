@@ -1,7 +1,7 @@
 import logging
 import sys
 from time import sleep
-from typing import List, Optional
+from typing import List, Optional, Set
 
 import requests
 
@@ -26,6 +26,26 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(fi
 html_storage = Storage(HTML_ROOT_DIR)
 lyrics_storage = Storage(LYRICS_ROOT_DIR)
 
+ignore_list: Set[str] = {
+    'Фридерик Шопен',
+    'Ференц Лист',
+    'Пётр Ильич Чайковский',
+    'Модест Мусоргский',
+    'Иоганн Себастьян Бах',
+    'Денис Мацуев',
+    'Вольфганг Амадей Моцарт',
+    'Антонио Вивальди',
+    'Эдвард Григ',
+    'Apocalyptica',
+    'Людвиг Ван Бетховен',
+    'Theatrum',
+    'Insanity Play'
+}
+
+
+def shall_be_ignored(song_data: SongData) -> bool:
+    return song_data.artist in ignore_list
+
 
 def main():
     root_dir = sys.argv[1]
@@ -35,6 +55,9 @@ def main():
         log.info("------------------------------")
         log.info(f'Trying file: {song_file}')
         song_data = get_song_data(song_file)
+        if shall_be_ignored(song_data):
+            log.info(f'[IGNORE] Song is added to manual ignored list: {song_data}')
+            continue
         if song_data.lyrics:
             log.info(f"[EXIST] Lyrics already present in {song_data}")
             continue

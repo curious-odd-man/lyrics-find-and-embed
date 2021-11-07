@@ -23,7 +23,7 @@ class StorageTests(unittest.TestCase):
 
     def test_get_sources(self):
         storage = Storage(existing_sources_path)
-        sources = storage.get_sources(SongData(None, 'artist', 'title', 'album', None, None))
+        sources = storage.get_sources(SongData(None, 'artist', 'album', 'title', None, None))
         log.info(sources)
         self.assertIn('source1', sources)
         self.assertIn('source2', sources)
@@ -32,21 +32,21 @@ class StorageTests(unittest.TestCase):
     def test_store_song(self):
         os.makedirs(store_song_path, exist_ok=True)
         storage = Storage(store_song_path)
-        storage.store('source_x', SongData(None, 'artist', 'title', 'album', None, None), 'dummy_text', False)
+        storage.store('source_x', SongData(None, 'artist', 'album', 'title', None, None), 'dummy_text', False)
         with open(os.path.join(store_song_path, 'artist', 'album', 'title', 'source_x')) as f:
             self.assertEqual('dummy_text', f.read())
 
     def test_store_album(self):
         os.makedirs(store_album_path, exist_ok=True)
         storage = Storage(store_album_path)
-        storage.store('source_x', SongData(None, 'artist', 'title', 'album', None, None), 'dummy_text', True)
+        storage.store('source_x', SongData(None, 'artist', 'album', 'title', None, None), 'dummy_text', True)
         with open(os.path.join(store_album_path, 'artist', 'album', 'source_x')) as f:
             self.assertEqual('dummy_text', f.read())
 
     def test_load(self):
         storage = Storage(existing_sources_path)
-        song3 = storage.load('source3', SongData(None, 'artist', 'title', 'album', None, None), is_album=True)
-        song2 = storage.load('source2', SongData(None, 'artist', 'title', 'album', None, None), is_album=False)
+        song3 = storage.load('source3', SongData(None, 'artist', 'album', 'title', None, None), is_album=True)
+        song2 = storage.load('source2', SongData(None, 'artist', 'album', 'title', None, None), is_album=False)
         self.assertEqual('source_3_text', song3)
         self.assertEqual('source_2_text', song2)
 

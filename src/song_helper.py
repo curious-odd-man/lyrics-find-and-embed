@@ -11,7 +11,7 @@ import logging
 import re
 import sys
 import os
-from typing import Optional
+from typing import Optional, List
 
 import glob2
 import platform
@@ -188,7 +188,7 @@ def get_song_data(path) -> Optional[SongData]:
     # format will the part of string after last '.' character
     # only use lowercase for formats
     song_format = path[path.rfind('.') + 1:].lower()
-    log.info(f"Song format is {song_format}")
+    log.debug(f"Song format is {song_format}")
 
     try:
         if song_format == 'mp3':
@@ -211,10 +211,10 @@ def get_song_data(path) -> Optional[SongData]:
         album = get_key(tag, FORMAT_KEYS[song_format]['album'], song_format)
         lyrics = get_key(tag, FORMAT_KEYS[song_format]['lyrics'], song_format)
 
-    return SongData(tag, artist, title, album, lyrics, song_format)
+    return SongData(tag, artist, album, title, lyrics, song_format)
 
 
-def get_song_list(path):
+def get_song_list(path) -> List[str]:
     """ Return list of paths to all valid audio files in dir located at path.
         Valid audio formats are imported from settings module.
         Also checks for any inner directories."""

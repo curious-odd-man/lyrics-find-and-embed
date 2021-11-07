@@ -1,5 +1,7 @@
 class SongData:
-    def __init__(self, tag, artist: str, title: str, album: str, lyrics: str, song_format: str):
+    def __init__(self, tag, artist: str, album: str, title: str, lyrics: str, song_format: str):
+        if artist is None or album is None or title is None:
+            raise Exception('artist, album and title must be not None')
         self.song_format = song_format
         self.lyrics = lyrics
         self.album = album
