@@ -16,16 +16,15 @@ from typing import Optional
 import glob2
 import platform
 
-from urllib.parse import quote
-
-from mutagen.id3 import ID3
+from mutagen.id3 import ID3, USLT
 from mutagen.mp4 import MP4
 from mutagen.flac import FLAC
 from mutagen.oggvorbis import OggVorbis
 from mutagen.oggflac import OggFLAC
-from mutagen.asf import ASF
+from mutagen.asf import ASF, ASFUnicodeAttribute
 
 from audio_format_keys import FORMAT_KEYS
+from song_data import SongData
 
 log = logging.getLogger(__file__)
 
@@ -167,19 +166,6 @@ def extract_ogg_tag(path):
     return (ogg_tag, error)
 
 
-class SongData:
-    def __init__(self, tag, artist: str, title: str, album: str, lyrics: str, song_format: str):
-        self.song_format = song_format
-        self.lyrics = lyrics
-        self.album = album
-        self.title = title
-        self.tag = tag
-        self.artist = artist
-
-    def __str__(self) -> str:
-        return f'{self.artist}-{self.album}-{self.title}'
-
-
 def get_song_data(path) -> Optional[SongData]:
     """
         Extracts song artist, album, title and lyrics if present
@@ -249,3 +235,35 @@ def get_song_list(path):
             song_list.extend(glob2.glob(os.path.join(path, pattern_uppercase)))
 
     return song_list
+
+
+def embedd_lyrics_in_song(song_data: SongData, lyrics: str):
+    song_format = song_data.song_format
+    tag = song_data.tag
+    lyrics_key = FORMAT_KEYS[song_format]['lyrics']
+    try:
+        if song_format == 'mp3':
+            # encoding = 3 for UTF-8
+            tag.add(USLT(encoding=3, lang=u'eng', desc=u'lyrics.wikia',
+                         text=lyrics))
+
+        if song_format == 'm4a' or song_format == 'mp4':
+            # lyrics_key = '\xa9lyr'
+
+            if sys.version_info[0] < 3:
+                lyrics_key = lyrics_key.encode('latin-1')
+            tag[lyrics_key] = lyrics
+
+        # Both flac and ogg/oga(Vorbis & FLAC), are being read/write as Vorbis Comments.
+        # Vorbis Comments don't have a standard 'lyrics' tag. The 'LYRICS' tag is
+        # most common non-standard tag used for lyrics.
+        if song_format == 'flac' or song_format == 'ogg' or song_format == 'oga':
+            tag[lyrics_key] = lyrics
+
+        if song_format == 'wma':
+            # ASF Format uses ASFUnicodeAttribute objects instead of Python's Unicode
+            tag[lyrics_key] = ASFUnicodeAttribute(lyrics)
+
+        tag.save()
+    except Exception as e:
+        log.error("Failed to save lyrics to file: " + str(e), exc_info=True)

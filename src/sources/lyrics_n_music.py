@@ -7,11 +7,12 @@ from typing import Optional
 import requests
 from bs4 import BeautifulSoup
 
-from build_requests import get_lyrico_headers, get_lnm_api_key
+from build_requests import get_request_headers, get_lnm_api_key
+from song_data import SongData
 from sources.helper import test_lyrics
 from sources.lyrics_source import LyricsSource
 
-request_headers = get_lyrico_headers()
+request_headers = get_request_headers()
 api_key = get_lnm_api_key()
 request_headers['Content-type'] = 'application/json'
 
@@ -23,11 +24,14 @@ class LyricsnMusic(LyricsSource):
     def __init__(self):
         super().__init__('Lyrics_n_Music')
 
-    def prepare_request(self, title: str, artist: str) -> [Optional[str], Optional[object]]:
+    def is_album(self) -> bool:
+        return False
+
+    def prepare_request(self, song_data: SongData) -> [Optional[str], Optional[object]]:
         data = {
             'api_key': api_key,
-            'artist': artist,
-            'track': title
+            'artist': song_data.artist,
+            'track': song_data.title
         }
 
         request_headers['Content-type'] = 'application/json'

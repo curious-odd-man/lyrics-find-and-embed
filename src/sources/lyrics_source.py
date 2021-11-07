@@ -1,13 +1,18 @@
 from abc import abstractmethod
-from typing import Dict, Optional
+from typing import Optional
+
+from song_data import SongData
 
 
 class LyricsSource:
     def __init__(self, name: str):
         self.name = name
 
+    def is_album(self) -> bool:
+        raise NotImplementedError("Please Implement this method")
+
     @abstractmethod
-    def prepare_request(self, title: str, artist: str) -> [Optional[str], Optional[object]]:
+    def prepare_request(self, song_data: SongData) -> [Optional[str], Optional[object]]:
         raise NotImplementedError("Please Implement this method")
 
     @abstractmethod

@@ -5,11 +5,12 @@ from string import ascii_lowercase as LOWERCASE_CHARS
 
 from bs4 import BeautifulSoup
 
-from build_requests import get_lyrico_headers
+from build_requests import get_request_headers
 from lyrico.lyrico_sources.lyrics_helper import remove_accents, test_lyrics
+from song_data import SongData
 from sources.lyrics_source import LyricsSource
 
-request_headers = get_lyrico_headers()
+request_headers = get_request_headers()
 regex_non_alphanumeric = re.compile(r'[^a-z0-9\s\-]+')
 regex_underscores = re.compile(r'[\s|\-]+')
 
@@ -20,9 +21,12 @@ class LyricsMode(LyricsSource):
     def __init__(self):
         super().__init__('Lyrics_Mode')
 
-    def prepare_request(self, title: str, artist: str) -> [Optional[str], Optional[object]]:
-        artist = regex_non_alphanumeric.sub('', remove_accents(artist).lower())
-        title = regex_non_alphanumeric.sub('', title.lower())
+    def is_album(self) -> bool:
+        return False
+
+    def prepare_request(self, song_data: SongData) -> [Optional[str], Optional[object]]:
+        artist = regex_non_alphanumeric.sub('', remove_accents(song_data.artist).lower())
+        title = regex_non_alphanumeric.sub('', song_data.title.lower())
         artist = regex_underscores.sub('_', artist)
         title = regex_underscores.sub('_', title)
 

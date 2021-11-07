@@ -6,11 +6,12 @@ from urllib.parse import quote
 
 from bs4 import BeautifulSoup
 
-from build_requests import get_lyrico_headers
+from build_requests import get_request_headers
+from song_data import SongData
 from sources.helper import test_lyrics
 from sources.lyrics_source import LyricsSource
 
-request_headers = get_lyrico_headers()
+request_headers = get_request_headers()
 
 regex_non_alphanum = re.compile(r'[^\w\s\-]*', re.UNICODE)
 regex_spaces = re.compile(r'[\s]+', re.UNICODE)
@@ -23,9 +24,12 @@ class MusixMatch(LyricsSource):
     def __init__(self):
         super().__init__('Musix Match')
 
-    def prepare_request(self, title: str, artist: str) -> [Optional[str], Optional[object]]:
-        refined_artist = self.__refine_text(artist)
-        refined_title = self.__refine_text(title)
+    def is_album(self) -> bool:
+        return False
+
+    def prepare_request(self, song_data: SongData) -> [Optional[str], Optional[object]]:
+        refined_artist = self.__refine_text(song_data.artist)
+        refined_title = self.__refine_text(song_data.title)
         url = 'https://www.musixmatch.com/lyrics/%s/%s' % (quote(refined_artist), quote(refined_title))
         return url, request_headers
 

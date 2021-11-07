@@ -1,16 +1,14 @@
 import logging
-import random
 import sys
 from time import sleep
 from typing import List, Optional
 
 import requests
-from mutagen.asf import ASFUnicodeAttribute
-from mutagen.id3 import USLT
 
-from audio_format_keys import FORMAT_KEYS
-from song_helper import get_song_list, get_song_data, SongData
+from song_data import SongData
+from song_helper import get_song_list, get_song_data, embedd_lyrics_in_song
 from sources.LyricsMode import LyricsMode
+from sources.darklyrics import DarkLyrics
 from sources.lyrics_source import LyricsSource
 from sources.musix_match import MusixMatch
 from storage import Storage
@@ -20,47 +18,13 @@ LYRICS_ROOT_DIR = r'D:\Programming\git\lyrico\00_lyrics'
 
 EMBED_IN_SONG = True
 
-all_lyrics_sources: List[LyricsSource] = [LyricsMode(), MusixMatch()]
+all_lyrics_sources: List[LyricsSource] = [DarkLyrics(), LyricsMode(), MusixMatch()]
 
 log = logging.getLogger("main")
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s')
 
 html_storage = Storage(HTML_ROOT_DIR)
 lyrics_storage = Storage(LYRICS_ROOT_DIR)
-
-
-
-
-def embedd_lyrics_in_song(song_data: SongData, lyrics: str):
-    song_format = song_data.song_format
-    tag = song_data.tag
-    lyrics_key = FORMAT_KEYS[song_format]['lyrics']
-    try:
-        if song_format == 'mp3':
-            # encoding = 3 for UTF-8
-            tag.add(USLT(encoding=3, lang=u'eng', desc=u'lyrics.wikia',
-                         text=lyrics))
-
-        if song_format == 'm4a' or song_format == 'mp4':
-            # lyrics_key = '\xa9lyr'
-
-            if sys.version_info[0] < 3:
-                lyrics_key = lyrics_key.encode('latin-1')
-            tag[lyrics_key] = lyrics
-
-        # Both flac and ogg/oga(Vorbis & FLAC), are being read/write as Vorbis Comments.
-        # Vorbis Comments don't have a standard 'lyrics' tag. The 'LYRICS' tag is
-        # most common non-standard tag used for lyrics.
-        if song_format == 'flac' or song_format == 'ogg' or song_format == 'oga':
-            tag[lyrics_key] = lyrics
-
-        if song_format == 'wma':
-            # ASF Format uses ASFUnicodeAttribute objects instead of Python's Unicode
-            tag[lyrics_key] = ASFUnicodeAttribute(lyrics)
-
-        tag.save()
-    except Exception as e:
-        log.error("Failed to save lyrics to file: " + str(e), exc_info=True)
 
 
 def main():
@@ -76,7 +40,7 @@ def main():
             continue
 
         if song_data.artist and song_data.title:
-            lyrics = get_lyrics(song_data.artist, song_data.title)
+            lyrics = get_lyrics(song_data)
             if lyrics:
                 if EMBED_IN_SONG:
                     embedd_lyrics_in_song(song_data, lyrics)
@@ -98,23 +62,22 @@ def find_source_by_name(source_name: str, lyrics_sources: List[LyricsSource]) ->
     return None
 
 
-def get_lyrics(artist: str, title: str) -> str:
-    log.info(f'Fetching lyrics for {artist}-{title}')
+def get_lyrics(song_data: SongData) -> str:
+    log.info(f'Fetching lyrics for {song_data.artist}-{song_data.title}')
     lyrics_sources = all_lyrics_sources.copy()
-    random.shuffle(lyrics_sources)
-    lyrics = handle_existing_html(artist, lyrics_sources, title)
+    lyrics = handle_existing_html(lyrics_sources, song_data)
     if lyrics:
         return lyrics
 
     # if we still do NOT have a lyrics - try to fetch them from remaining sources
     while len(lyrics_sources) > 0:
-        source = lyrics_sources[0]
+        lyrics_source = lyrics_sources[0]
         del lyrics_sources[0]
         try:
-            log.info(f'\tTrying source {source.get_name()}')
+            log.info(f'\tTrying source {lyrics_source.get_name()}')
             log.info('\tWait 10 seconds to avoid spamming')
             sleep(10)  # TODO: Avoid spamming to not get detected
-            url, headers = source.prepare_request(title, artist)
+            url, headers = lyrics_source.prepare_request(song_data)
             log.info(f'\tULR: {url}\n\t{headers}')
             if not url:
                 log.info('\tUrl was not created')
@@ -123,19 +86,19 @@ def get_lyrics(artist: str, title: str) -> str:
             result = requests.get(url, headers=headers)
             log.info(str(result))
             result.raise_for_status()
-            html_storage.store(source.get_name(), artist, title, result.text)
-            html = html_storage.load(source.get_name(), artist, title)
-            lyrics = source.parse_lyrics(html)
-            lyrics_storage.store(source.get_name(), artist, title, lyrics)
+            html_storage.store(lyrics_source.get_name(), song_data, result.text, lyrics_source.is_album())
+            html = html_storage.load(lyrics_source.get_name(), song_data, lyrics_source.is_album())
+            lyrics = lyrics_source.parse_lyrics(html)
+            lyrics_storage.store(lyrics_source.get_name(), song_data, lyrics)
             log.info(f'[OK] successfully parsed lyrics: {len(lyrics)}')
             return lyrics
         except Exception as e:
-            log.error(f"Failed extracting song lyrics from {source.get_name()}: " + str(e), exc_info=True)
+            log.error(f"Failed extracting song lyrics from {lyrics_source.get_name()}: " + str(e), exc_info=True)
 
 
-def handle_existing_html(artist, lyrics_sources, title) -> Optional[str]:
+def handle_existing_html(lyrics_sources, song_data) -> Optional[str]:
     # Do we already have a HTML saved?
-    list_of_sources: List[str] = html_storage.get_sources(artist, title)
+    list_of_sources: List[str] = html_storage.get_sources(song_data)
     log.info(f"Already have html file for {list_of_sources}")
     lyrics = None
     for source_name in list_of_sources:
@@ -144,10 +107,10 @@ def handle_existing_html(artist, lyrics_sources, title) -> Optional[str]:
         if lyrics_source:
             lyrics_sources.remove(lyrics_source)
             # Try and parse lyrics for the source
-            lyrics_html = html_storage.load(source_name, artist, title)
+            lyrics_html = html_storage.load(source_name, song_data, lyrics_source.is_album())
             try:
                 lyrics = lyrics_source.parse_lyrics(lyrics_html)
-                lyrics_storage.store(source_name, artist, title, lyrics)
+                lyrics_storage.store(source_name, song_data, lyrics)
                 log.info(f'[OK] successfully parsed lyrics: {len(lyrics) if lyrics else 0}')
                 break
             except Exception as e:

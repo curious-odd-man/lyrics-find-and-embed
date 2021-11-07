@@ -51,7 +51,7 @@ lnm_api_keys = [
 
 # randint inculdes both upper and lower bounds
 
-def get_lyrico_headers(site_name=None):
+def get_request_headers(site_name=None):
 	
 	# Since each module requesting from different souce uses the same
 	# request headers for a lyrico operation, make deep copies of base headers
