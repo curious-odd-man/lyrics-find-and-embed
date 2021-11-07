@@ -111,7 +111,7 @@ def get_lyrics(song_data: SongData) -> str:
             result.raise_for_status()
             html_storage.store(lyrics_source.get_name(), song_data, result.text, lyrics_source.is_album())
             html = html_storage.load(lyrics_source.get_name(), song_data, lyrics_source.is_album())
-            lyrics = lyrics_source.parse_lyrics(html)
+            lyrics = lyrics_source.parse_lyrics(html, song_data.title)
             lyrics_storage.store(lyrics_source.get_name(), song_data, lyrics)
             log.info(f'[OK] successfully parsed lyrics: {len(lyrics)}')
             return lyrics
@@ -132,7 +132,7 @@ def handle_existing_html(lyrics_sources, song_data) -> Optional[str]:
             # Try and parse lyrics for the source
             lyrics_html = html_storage.load(source_name, song_data, lyrics_source.is_album())
             try:
-                lyrics = lyrics_source.parse_lyrics(lyrics_html)
+                lyrics = lyrics_source.parse_lyrics(lyrics_html, song_data.title)
                 lyrics_storage.store(source_name, song_data, lyrics)
                 log.info(f'[OK] successfully parsed lyrics: {len(lyrics) if lyrics else 0}')
                 break

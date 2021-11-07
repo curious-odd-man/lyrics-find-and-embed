@@ -49,7 +49,7 @@ class LyricsnMusic(LyricsSource):
         del request_headers['Content-type']
         return lyrics_url, request_headers
 
-    def parse_lyrics(self, html: str) -> Optional[str]:
+    def parse_lyrics(self, html: str, song_title) -> Optional[str]:
         soup = BeautifulSoup(html, 'html.parser')
 
         # LYRICSnMUSIC pages hold lyrics in a <pre> tag contained in <div> with id='main'

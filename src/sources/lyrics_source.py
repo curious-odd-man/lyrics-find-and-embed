@@ -16,7 +16,7 @@ class LyricsSource:
         raise NotImplementedError("Please Implement this method")
 
     @abstractmethod
-    def parse_lyrics(self, html: str) -> Optional[str]:
+    def parse_lyrics(self, html: str, song_title) -> Optional[str]:
         raise NotImplementedError("Please Implement this method")
 
     def get_name(self) -> str:

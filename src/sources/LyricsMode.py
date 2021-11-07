@@ -39,7 +39,7 @@ class LyricsMode(LyricsSource):
 
         return 'http://www.lyricsmode.com/lyrics/%s/%s/%s.html' % (first_artist_char, artist, title), request_headers
 
-    def parse_lyrics(self, html: str) -> Optional[str]:
+    def parse_lyrics(self, html: str, song_title) -> Optional[str]:
         soup = BeautifulSoup(html, 'html.parser')
 
         # For lyricsmode, the lyrics are present in a div with id 'lyrics_text'

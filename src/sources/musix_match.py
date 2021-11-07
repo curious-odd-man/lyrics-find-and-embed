@@ -47,7 +47,7 @@ class MusixMatch(LyricsSource):
             res = res.encode('utf-8')
         return res
 
-    def parse_lyrics(self, html: str) -> Optional[str]:
+    def parse_lyrics(self, html: str, song_title) -> Optional[str]:
         soup = BeautifulSoup(html, 'html.parser')
         lyrics = ''
         all_p_elements = soup.findAll('p', {"class": "mxm-lyrics__content"})
