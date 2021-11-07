@@ -88,14 +88,13 @@ class AnalyseLybrary(unittest.TestCase):
                 print('.', end='', flush=True)
                 song_data = get_song_data(song_file)
                 if shall_be_ignored(song_data):
-                    log.info(f'[IGNORE] Song is added to manual ignored list: {song_data}')
                     continue
                 song = Song(song_data)
 
                 artist_info = artist_to_albums.setdefault(song_data.artist, Artist())
                 artist_info.add_album(song_data.album)
                 artist_info.add_song_to_album(song_data.album, song)
-            finally:
+            except Exception:
                 log.error(song_file, exc_info=True)
 
         self.calc_and_print_stats()

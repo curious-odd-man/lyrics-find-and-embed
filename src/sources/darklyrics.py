@@ -1,6 +1,8 @@
 import re
 from typing import Optional
 
+from bs4 import BeautifulSoup
+
 from build_requests import get_request_headers
 from song_data import SongData
 from sources.lyrics_source import LyricsSource
@@ -17,9 +19,12 @@ class DarkLyrics(LyricsSource):
         return True
 
     def prepare_request(self, song_data: SongData) -> [Optional[str], Optional[object]]:
-        artist = regex_non_alphanumeric.sub('', song_data.artist)
-        album = regex_non_alphanumeric.sub('', song_data.album)
+        artist = regex_non_alphanumeric.sub('', song_data.artist.lower())
+        album = regex_non_alphanumeric.sub('', song_data.album.lower())
         return f'http://www.darklyrics.com/lyrics/{artist}/{album}.html', request_headers
 
     def parse_lyrics(self, html: str) -> Optional[str]:
-        pass
+        soup = BeautifulSoup(html, 'html.parser')
+        lyrics = ''
+
+        return lyrics
