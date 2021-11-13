@@ -39,7 +39,17 @@ ignore_list: Set[str] = {
     'Apocalyptica',
     'Людвиг Ван Бетховен',
     'Theatrum',
-    'Insanity Play'
+    'Insanity Play',
+
+    # Russian artists
+    'Земфира',
+    'Кипелов',
+    'Александр Васильев',
+    'Ария',
+    'Сплин',
+
+# Instrumental
+    'Avishai Cohen'
 }
 
 

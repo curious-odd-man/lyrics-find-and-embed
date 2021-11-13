@@ -1,7 +1,7 @@
 import logging
 import unittest
 from time import sleep
-from typing import Dict
+from typing import Dict, Tuple, List
 
 from main import shall_be_ignored
 from song_data import SongData
@@ -120,6 +120,9 @@ class AnalyseLybrary(unittest.TestCase):
 
         log.info(f'Total albums {count_albums}')
         log.info(f'Total songs {count_songs}')
+
+        self.__print_worst_covered_artists()
+
         log.info('Missing lyrics stats')
         for artist_name, artist in artist_to_albums.items():
             artist.calc_songs_with_lyrics()
@@ -135,6 +138,48 @@ class AnalyseLybrary(unittest.TestCase):
                 for song in album.songs:
                     if not song.has_lyrics:
                         log.info(f'\t\t\t{song.title}: [MISSING]')
+
+    def __print_worst_covered_artists(self):
+        artist_to_counts: Dict[str, List[int, int]] = dict()
+        album_to_counts: Dict[str, List[int, int]] = dict()
+        for artist_name, artist in artist_to_albums.items():
+            count_in_artist = 0
+            count_lyrics_in_artist = 0
+            for album in artist.albums.values():
+                count_in_album = 0
+                count_lyrics_in_album = 0
+                for song in album.songs:
+                    count_in_artist += 1
+                    count_in_album += 1
+                    if song.has_lyrics:
+                        count_lyrics_in_artist += 1
+                        count_lyrics_in_album += 1
+                album_to_counts[artist_name + "-" + album.album] = [count_in_album, count_lyrics_in_album]
+            artist_to_counts[artist_name] = [count_in_artist, count_lyrics_in_artist]
+        artist_to_rate: Dict[str, float] = dict()
+        album_to_rate: Dict[str, float] = dict()
+        for k, v in artist_to_counts.items():
+            artist_to_rate[k] = v[1] / v[0]
+        for k, v in album_to_counts.items():
+            album_to_rate[k] = v[1] / v[0]
+
+        sorted_artists = {k: v for k, v in sorted(artist_to_rate.items(), key=lambda item: item[1])}
+        sorted_albums = {k: v for k, v in sorted(album_to_rate.items(), key=lambda item: item[1])}
+        log.info("Worst covered artists")
+        i = 0
+        for k, v in sorted_artists.items():
+            log.info(f'\t{k}: {truncate(v, 1)}')
+            i += 1
+            if i > 10:
+                break
+
+        i = 0
+        log.info("Worst covered albums")
+        for k, v in sorted_albums.items():
+            log.info(f'\t{k}: {truncate(v, 1)}')
+            i += 1
+            if i > 10:
+                break
 
 
 if __name__ == '__main__':

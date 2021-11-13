@@ -37,7 +37,11 @@ class DarkLyrics(LyricsSource):
         if not songs_with_lyrics or len(songs_with_lyrics) == 0:
             return None
 
-        return songs_with_lyrics[format_song(song_title)]
+        song_lyrics = songs_with_lyrics[format_song(song_title)]
+        if song_lyrics == '':
+            return '[Instrumental]'
+        else:
+            return song_lyrics
 
     def __split_by_songs(self, soup) -> Optional[Dict[str, str]]:
         lyrics_div_result = soup.findAll('div', {"class": "lyrics"})
