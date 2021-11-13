@@ -1,13 +1,14 @@
 import logging
 import unittest
+from time import sleep
 from typing import Dict
 
 from main import shall_be_ignored
 from song_data import SongData
 from song_helper import get_song_list, get_song_data
 
-log = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s')
+log = logging.getLogger(__file__)
 
 library_path = r'D:\My Music\Music'
 
@@ -83,9 +84,15 @@ class AnalyseLybrary(unittest.TestCase):
 
     def test_overall_stats(self):
         song_list = get_song_list(library_path)
+        i = 0
         for song_file in song_list:
             try:
-                print('.', end='', flush=True)
+                i = i + 1
+                if i % 150 == 0:
+                    end = '\n'
+                else:
+                    end = ''
+                print('.', end=end, flush=True)
                 song_data = get_song_data(song_file)
                 if shall_be_ignored(song_data):
                     continue
@@ -97,11 +104,13 @@ class AnalyseLybrary(unittest.TestCase):
             except Exception:
                 log.error(song_file, exc_info=True)
 
+        print()
+        sleep(3)
         self.calc_and_print_stats()
 
     def calc_and_print_stats(self):
         count_artists = len(artist_to_albums.keys())
-        print(f'Total artists {count_artists}')
+        log.info(f'Total artists {count_artists}')
         count_albums = 0
         count_songs = 0
         for artists in artist_to_albums.values():
@@ -109,23 +118,23 @@ class AnalyseLybrary(unittest.TestCase):
                 count_songs += albums.song_count()
                 count_albums += 1
 
-        print(f'Total albums {count_albums}')
-        print(f'Total songs {count_songs}')
-        print('Missing lyrics stats')
+        log.info(f'Total albums {count_albums}')
+        log.info(f'Total songs {count_songs}')
+        log.info('Missing lyrics stats')
         for artist_name, artist in artist_to_albums.items():
             artist.calc_songs_with_lyrics()
             if artist.all_lyrics():
-                log.debug(f'\t{artist_name}: [FULL]')
+                log.info(f'\t{artist_name}: [FULL]')
                 continue
-            print(f'\t{artist_name}:')
+            log.info(f'\t{artist_name}:')
             for album in artist.albums.values():
                 if album.all_lyrics():
-                    log.debug(f'\t\t{album.album}: [FULL]')
+                    log.info(f'\t\t{album.album}: [FULL]')
                     continue
-                print(f'\t\t{album.album}: {truncate(album.percent_with_lyrics() * 100, 0)} %')
+                log.info(f'\t\t{album.album}: {truncate(album.percent_with_lyrics() * 100, 0)} %')
                 for song in album.songs:
                     if not song.has_lyrics:
-                        print(f'\t\t\t{song.title}: [MISSING]')
+                        log.info(f'\t\t\t{song.title}: [MISSING]')
 
 
 if __name__ == '__main__':

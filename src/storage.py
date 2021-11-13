@@ -16,8 +16,13 @@ class Storage:
         Return list of sources for which html is available
         """
         result = []
-        for (_, _, filenames) in walk(self.__make_dir_path_album(song_data)):
-            result.extend(filenames)
+        album_path = self.__make_dir_path_album(song_data)
+        title_path = self.__make_dir_path(song_data)
+        for (curr_dir, _, filenames) in walk(album_path):
+            if album_path == curr_dir:
+                result.extend(filenames)
+            elif title_path == curr_dir:
+                result.extend(filenames)
         return result
 
     def load(self, source: str, song_data: SongData, is_album=False) -> str:

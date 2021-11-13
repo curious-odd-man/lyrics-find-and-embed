@@ -50,6 +50,18 @@ class StorageTests(unittest.TestCase):
         self.assertEqual('source_3_text', song3)
         self.assertEqual('source_2_text', song2)
 
+    def test_album_and_song_sources(self):
+        storage = Storage(existing_sources_path)
+        sources = storage.get_sources(SongData(None, 'artist2', 'albumX', 'title1', None, None))
+        self.assertIn('sourcX', sources)
+        self.assertIn('album_source', sources)
+        self.assertNotIn('sourceY', sources)
+        sources = storage.get_sources(SongData(None, 'artist2', 'albumX', 'title2', None, None))
+        self.assertIn('sourceY', sources)
+        self.assertIn('album_source', sources)
+        self.assertNotIn('sourcX', sources)
+
+
 
 if __name__ == '__main__':
     unittest.main()

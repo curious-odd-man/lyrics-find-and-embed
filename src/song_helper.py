@@ -188,7 +188,6 @@ def get_song_data(path) -> Optional[SongData]:
     # format will the part of string after last '.' character
     # only use lowercase for formats
     song_format = path[path.rfind('.') + 1:].lower()
-    log.debug(f"Song format is {song_format}")
 
     try:
         if song_format == 'mp3':
