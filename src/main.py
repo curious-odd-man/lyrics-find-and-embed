@@ -47,6 +47,7 @@ ignore_list: Set[str] = {
     'Александр Васильев',
     'Ария',
     'Сплин',
+    'Король и Шут',
 
 # Instrumental
     'Avishai Cohen'
