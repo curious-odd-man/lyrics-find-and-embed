@@ -106,9 +106,6 @@ class AnalyseLybrary(unittest.TestCase):
 
         print()
         sleep(3)
-        self.calc_and_print_stats()
-
-    def calc_and_print_stats(self):
         count_artists = len(artist_to_albums.keys())
         log.info(f'Total artists {count_artists}')
         count_albums = 0
@@ -123,21 +120,25 @@ class AnalyseLybrary(unittest.TestCase):
 
         self.__print_worst_covered_artists()
 
-        log.info('Missing lyrics stats')
         for artist_name, artist in artist_to_albums.items():
-            artist.calc_songs_with_lyrics()
-            if artist.all_lyrics():
-                log.info(f'\t{artist_name}: [FULL]')
-                continue
-            log.info(f'\t{artist_name}:')
-            for album in artist.albums.values():
-                if album.all_lyrics():
-                    log.info(f'\t\t{album.album}: [FULL]')
+            with self.subTest(msg=f'{artist_name}'):
+                artist.calc_songs_with_lyrics()
+                if artist.all_lyrics():
+                    log.info(f'\t{artist_name}: [FULL]')
+                    self.assertTrue(True)
                     continue
-                log.info(f'\t\t{album.album}: {truncate(album.percent_with_lyrics() * 100, 0)} %')
-                for song in album.songs:
-                    if not song.has_lyrics:
-                        log.info(f'\t\t\t{song.title}: [MISSING]')
+                log.info(f'\t{artist_name}:')
+                for album in artist.albums.values():
+                    coverage = truncate(album.percent_with_lyrics() * 100, 0)
+                    with self.subTest(msg=f'{artist_name} - {album.album}: {coverage}'):
+                        if album.all_lyrics():
+                            log.info(f'\t\t{album.album}: [FULL]')
+                            continue
+                        log.info(f'\t\t{album.album}: {coverage} %')
+                        for song in album.songs:
+                            if not song.has_lyrics:
+                                log.info(f'\t\t\t{song.title}: [MISSING]')
+                                self.assertTrue(False)
 
     def __print_worst_covered_artists(self):
         artist_to_counts: Dict[str, List[int, int]] = dict()
