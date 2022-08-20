@@ -19,8 +19,18 @@ In main.py:
 
 # How To Run
 
+## Scraping and embedding
+
 Please refer no configurations above before running tool. 100% you want to make changes there first.
 Execute `main.py` and pass path to a library directory.
+
+## Analysis
+
+There is a test that can analyse your library and show how much songs you have with and without lyrics.
+It is located in `src/unittest/AnalyseLibrary.py`
+
+Change path in a variable `library_path` in that file and run it as unit tests.
+
 
 # Note
 
