@@ -19,6 +19,7 @@ In main.py:
 
 # How To Run
 
+Please refer no configurations above before running tool. 100% you want to make changes there first.
 Execute `main.py` and pass path to a library directory.
 
 # Note
