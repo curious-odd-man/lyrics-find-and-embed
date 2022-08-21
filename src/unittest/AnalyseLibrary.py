@@ -120,6 +120,7 @@ class AnalyseLybrary(unittest.TestCase):
 
         self.__print_worst_covered_artists()
 
+        log.info(f'All artists/albums dump:')
         for artist_name, artist in artist_to_albums.items():
             with self.subTest(msg=f'{artist_name}'):
                 artist.calc_songs_with_lyrics()
@@ -167,12 +168,9 @@ class AnalyseLybrary(unittest.TestCase):
         sorted_artists = {k: v for k, v in sorted(artist_to_rate.items(), key=lambda item: item[1])}
         sorted_albums = {k: v for k, v in sorted(album_to_rate.items(), key=lambda item: item[1])}
         log.info("Worst covered artists")
-        i = 0
         for k, v in sorted_artists.items():
-            log.info(f'\t{k}: {truncate(v, 1)}')
-            i += 1
-            if i > 10:
-                break
+            if v < 1:
+                log.info(f'\t{k}: {truncate(v, 1)}')
 
         i = 0
         log.info("Worst covered albums")
